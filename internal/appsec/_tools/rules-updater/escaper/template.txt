@@ -1,0 +1,7 @@
+//go:build appsec
+// +build appsec
+
+package appsec
+
+// Static recommended AppSec rule {{.Version}}
+const staticRecommendedRule = {{.Rules}}

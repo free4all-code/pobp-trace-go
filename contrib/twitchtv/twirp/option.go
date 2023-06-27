@@ -1,0 +1,72 @@
+
+
+package twirp
+
+import (
+	"math"
+
+	"git.proto.group/protoobp/pobp-trace-go/internal"
+	"git.proto.group/protoobp/pobp-trace-go/internal/globalconfig"
+)
+
+type config struct {
+	serviceName   string
+	analyticsRate float64
+}
+
+// Option represents an option that can be passed to Dial.
+type Option func(*config)
+
+func defaults(cfg *config) {
+	if internal.BoolEnv("POBP_TRACE_TWIRP_ANALYTICS_ENABLED", false) {
+		cfg.analyticsRate = 1.0
+	} else {
+		cfg.analyticsRate = globalconfig.AnalyticsRate()
+	}
+	if svc := globalconfig.ServiceName(); svc != "" {
+		cfg.serviceName = svc
+	}
+}
+
+func (cfg *config) serverServiceName() string {
+	if cfg.serviceName == "" {
+		return "twirp-server"
+	}
+	return cfg.serviceName
+}
+
+func (cfg *config) clientServiceName() string {
+	if cfg.serviceName == "" {
+		return "twirp-client"
+	}
+	return cfg.serviceName
+}
+
+// WithServiceName sets the given service name for the dialled connection.
+// When the service name is not explicitly set, it will be inferred based on the
+// request to the twirp service.
+func WithServiceName(name string) Option {
+	return func(cfg *config) {
+		cfg.serviceName = name
+	}
+}
+
+// WithAnalytics enables Trace Analytics for all started spans.
+func WithAnalytics(on bool) Option {
+	if on {
+		return WithAnalyticsRate(1.0)
+	}
+	return WithAnalyticsRate(math.NaN())
+}
+
+// WithAnalyticsRate sets the sampling rate for Trace Analytics events
+// correlated to started spans.
+func WithAnalyticsRate(rate float64) Option {
+	return func(cfg *config) {
+		if rate >= 0.0 && rate <= 1.0 {
+			cfg.analyticsRate = rate
+		} else {
+			cfg.analyticsRate = math.NaN()
+		}
+	}
+}

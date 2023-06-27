@@ -1,0 +1,16 @@
+# go
+bin/
+
+# profiling
+*.test
+*.out
+
+# generic
+.DS_Store
+*.cov
+*.lock
+*.swp
+.idea
+vendor
+
+/contrib/google.golang.org/grpc.v12/vendor/
